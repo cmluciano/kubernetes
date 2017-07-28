@@ -17,6 +17,8 @@ limitations under the License.
 package networking
 
 import (
+	"net"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/kubernetes/pkg/api"
@@ -90,6 +92,14 @@ type NetworkPolicyPort struct {
 	Port *intstr.IntOrString
 }
 
+// NetworkPolicyCIDR describes a Network CIDR to select
+type NetworkPolicyCIDR struct {
+	// +optional
+	IP net.IP
+	// +optional
+	Prefix *intstr.IntOrString
+}
+
 // NetworkPolicyPeer describes a peer to allow traffic from. Exactly one of its fields
 // must be specified.
 type NetworkPolicyPeer struct {
@@ -104,6 +114,10 @@ type NetworkPolicyPeer struct {
 	// selector semantics. If present but empty, this selector selects all namespaces.
 	// +optional
 	NamespaceSelector *metav1.LabelSelector
+
+	// Selects IP range(s) that a pod can accept (ingrees) or send (egress) traffic.
+	// +optional
+	CIDRSelector *[]NetworkPolicyCIDR
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

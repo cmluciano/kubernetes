@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/apis/extensions"
+	"k8s.io/kubernetes/pkg/apis/networking"
 )
 
 func addConversionFuncs(scheme *runtime.Scheme) error {
@@ -35,7 +36,9 @@ func addConversionFuncs(scheme *runtime.Scheme) error {
 		Convert_v1_NetworkPolicyList_To_extensions_NetworkPolicyList,
 		Convert_extensions_NetworkPolicyList_To_v1_NetworkPolicyList,
 		Convert_v1_NetworkPolicyPeer_To_extensions_NetworkPolicyPeer,
+		Convert_v1_NetworkPolicyPeer_To_networking_NetworkPolicyPeer,
 		Convert_extensions_NetworkPolicyPeer_To_v1_NetworkPolicyPeer,
+		Convert_networking_NetworkPolicyPeer_To_v1_NetworkPolicyPeer,
 		Convert_v1_NetworkPolicyPort_To_extensions_NetworkPolicyPort,
 		Convert_extensions_NetworkPolicyPort_To_v1_NetworkPolicyPort,
 		Convert_v1_NetworkPolicySpec_To_extensions_NetworkPolicySpec,
@@ -131,6 +134,34 @@ func Convert_v1_NetworkPolicyPeer_To_extensions_NetworkPolicyPeer(in *networking
 	return nil
 }
 
+func Convert_v1_NetworkPolicyPeer_To_networking_NetworkPolicyPeer(in *networkingv1.NetworkPolicyPeer, out *extensions.NetworkPolicyPeer, s conversion.Scope) error {
+	if in.PodSelector != nil {
+		out.PodSelector = new(metav1.LabelSelector)
+		if err := s.Convert(in.PodSelector, out.PodSelector, 0); err != nil {
+			return err
+		}
+	} else {
+		out.PodSelector = nil
+	}
+	if in.NamespaceSelector != nil {
+		out.NamespaceSelector = new(metav1.LabelSelector)
+		if err := s.Convert(in.NamespaceSelector, out.NamespaceSelector, 0); err != nil {
+			return err
+		}
+	} else {
+		out.NamespaceSelector = nil
+	}
+	if in.CIDRSelector != nil {
+		out.CIDRSelector = new(networking.NetworkPolicyCIDR)
+		if err := s.Convert(in.CIDRSelector, out.CIDRSelector, 0); err != nil {
+			return err
+		}
+	} else {
+		out.CIDRSelector = nil
+	}
+	return nil
+}
+
 func Convert_extensions_NetworkPolicyPeer_To_v1_NetworkPolicyPeer(in *extensions.NetworkPolicyPeer, out *networkingv1.NetworkPolicyPeer, s conversion.Scope) error {
 	if in.PodSelector != nil {
 		out.PodSelector = new(metav1.LabelSelector)
@@ -147,6 +178,34 @@ func Convert_extensions_NetworkPolicyPeer_To_v1_NetworkPolicyPeer(in *extensions
 		}
 	} else {
 		out.NamespaceSelector = nil
+	}
+	return nil
+}
+
+func Convert_networking_NetworkPolicyPeer_To_v1_NetworkPolicyPeer(in *extensions.NetworkPolicyPeer, out *networkingv1.NetworkPolicyPeer, s conversion.Scope) error {
+	if in.PodSelector != nil {
+		out.PodSelector = new(metav1.LabelSelector)
+		if err := s.Convert(in.PodSelector, out.PodSelector, 0); err != nil {
+			return err
+		}
+	} else {
+		out.PodSelector = nil
+	}
+	if in.NamespaceSelector != nil {
+		out.NamespaceSelector = new(metav1.LabelSelector)
+		if err := s.Convert(in.NamespaceSelector, out.NamespaceSelector, 0); err != nil {
+			return err
+		}
+	} else {
+		out.NamespaceSelector = nil
+	}
+	if in.CIDRSelector != nil {
+		out.CIDRSelector = new(networking.NetworkPolicyCIDR)
+		if err := s.Convert(in.CIDRSelector, out.CIDRSelector, 0); err != nil {
+			return err
+		}
+	} else {
+		out.CIDRSelector = nil
 	}
 	return nil
 }
