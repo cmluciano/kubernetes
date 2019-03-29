@@ -43,6 +43,7 @@ func TestCrossGroupStorage(t *testing.T) {
 		opts.APIEnablement.RuntimeConfig["extensions/v1beta1/replicasets"] = "true"
 		opts.APIEnablement.RuntimeConfig["extensions/v1beta1/podsecuritypolicies"] = "true"
 		opts.APIEnablement.RuntimeConfig["extensions/v1beta1/networkpolicies"] = "true"
+		opts.APIEnablement.RuntimeConfig["extensions/v1beta1/ingresses"] = "true"
 	})
 	defer master.Cleanup()
 

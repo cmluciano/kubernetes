@@ -46,6 +46,7 @@ var SpecialDefaultResourcePrefixes = map[schema.GroupResource]string{
 	{Group: "", Resource: "nodes"}:                         "minions",
 	{Group: "", Resource: "services"}:                      "services/specs",
 	{Group: "extensions", Resource: "ingresses"}:           "ingress",
+	{Group: "networking.k8s.io/v1beta1", Resource: "ingresses"}:           "ingress",
 	{Group: "extensions", Resource: "podsecuritypolicies"}: "podsecuritypolicy",
 	{Group: "policy", Resource: "podsecuritypolicies"}:     "podsecuritypolicy",
 }
@@ -110,7 +111,7 @@ func (c *completedStorageFactoryConfig) New() (*serverstorage.DefaultStorageFact
 	storageFactory.AddCohabitatingResources(apps.Resource("replicasets"), extensions.Resource("replicasets"))
 	storageFactory.AddCohabitatingResources(api.Resource("events"), events.Resource("events"))
 	storageFactory.AddCohabitatingResources(policy.Resource("podsecuritypolicies"), extensions.Resource("podsecuritypolicies"))
-	storageFactory.AddCohabitatingResources(extensions.Resource("ingresses"), networking.Resource("ingresses"))
+	storageFactory.AddCohabitatingResources(networking.Resource("ingresses"), extensions.Resource("ingresses"))
 
 	for _, override := range c.EtcdServersOverrides {
 		tokens := strings.Split(override, "#")

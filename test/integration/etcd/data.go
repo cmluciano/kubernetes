@@ -250,6 +250,7 @@ func GetEtcdStorageData() map[schema.GroupVersionResource]StorageData {
 		gvr("extensions", "v1beta1", "ingresses"): {
 			Stub:             `{"metadata": {"name": "ingress1"}, "spec": {"backend": {"serviceName": "service", "servicePort": 5000}}}`,
 			ExpectedEtcdPath: "/registry/ingress/etcdstoragepathtestnamespace/ingress1",
+			ExpectedGVK:      gvkP("networking.k8s.io", "v1beta1", "Ingress"),
 		},
 		gvr("extensions", "v1beta1", "networkpolicies"): {
 			Stub:             `{"metadata": {"name": "np1"}, "spec": {"podSelector": {"matchLabels": {"e": "f"}}}}`,
@@ -272,7 +273,7 @@ func GetEtcdStorageData() map[schema.GroupVersionResource]StorageData {
 		gvr("networking.k8s.io", "v1beta1", "ingresses"): {
 			Stub:             `{"metadata": {"name": "ingress2"}, "spec": {"backend": {"serviceName": "service", "servicePort": 5000}}}`,
 			ExpectedEtcdPath: "/registry/ingress/etcdstoragepathtestnamespace/ingress2",
-			ExpectedGVK:      gvkP("extensions", "v1beta1", "Ingress"),
+			ExpectedGVK:      gvkP("networking.k8s.io", "v1beta1", "Ingress"),
 		},
 		// --
 
