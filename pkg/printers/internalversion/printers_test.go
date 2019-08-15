@@ -1079,7 +1079,7 @@ func TestPrintHunmanReadableIngressWithColumnLabels(t *testing.T) {
 			},
 		},
 		Spec: networking.IngressSpec{
-			Backend: &networking.IngressBackend{
+			DefaultBackend: &networking.IngressBackend{
 				ServiceName: "svc",
 				ServicePort: intstr.FromInt(93),
 			},

@@ -749,7 +749,7 @@ func TestValidateIngress(t *testing.T) {
 				Namespace: metav1.NamespaceDefault,
 			},
 			Spec: networking.IngressSpec{
-				Backend: &networking.IngressBackend{
+				DefaultBackend: &networking.IngressBackend{
 					ServiceName: "default-backend",
 					ServicePort: intstr.FromInt(80),
 				},
@@ -779,11 +779,11 @@ func TestValidateIngress(t *testing.T) {
 		}
 	}
 	servicelessBackend := newValid()
-	servicelessBackend.Spec.Backend.ServiceName = ""
+	servicelessBackend.Spec.DefaultBackend.ServiceName = ""
 	invalidNameBackend := newValid()
-	invalidNameBackend.Spec.Backend.ServiceName = "defaultBackend"
+	invalidNameBackend.Spec.DefaultBackend.ServiceName = "defaultBackend"
 	noPortBackend := newValid()
-	noPortBackend.Spec.Backend = &networking.IngressBackend{ServiceName: defaultBackend.ServiceName}
+	noPortBackend.Spec.DefaultBackend = &networking.IngressBackend{ServiceName: defaultBackend.ServiceName}
 	noForwardSlashPath := newValid()
 	noForwardSlashPath.Spec.Rules[0].IngressRuleValue.HTTP.Paths = []networking.HTTPIngressPath{
 		{
@@ -810,9 +810,9 @@ func TestValidateIngress(t *testing.T) {
 	badHostIPErr := fmt.Sprintf("spec.rules[0].host: Invalid value: '%v'", hostIP)
 
 	errorCases := map[string]networking.Ingress{
-		"spec.backend.serviceName: Required value":        servicelessBackend,
-		"spec.backend.serviceName: Invalid value":         invalidNameBackend,
-		"spec.backend.servicePort: Invalid value":         noPortBackend,
+		"spec.defaultBackend.serviceName: Required value": servicelessBackend,
+		"spec.defaultBackend.serviceName: Invalid value":  invalidNameBackend,
+		"spec.defaultBackend.servicePort: Invalid value":  noPortBackend,
 		"spec.rules[0].host: Invalid value":               badHost,
 		"spec.rules[0].http.paths: Required value":        noPaths,
 		"spec.rules[0].http.paths[0].path: Invalid value": noForwardSlashPath,
@@ -853,7 +853,7 @@ func TestValidateIngressTLS(t *testing.T) {
 				Namespace: metav1.NamespaceDefault,
 			},
 			Spec: networking.IngressSpec{
-				Backend: &networking.IngressBackend{
+				DefaultBackend: &networking.IngressBackend{
 					ServiceName: "default-backend",
 					ServicePort: intstr.FromInt(80),
 				},
@@ -924,7 +924,7 @@ func TestValidateIngressStatusUpdate(t *testing.T) {
 				ResourceVersion: "9",
 			},
 			Spec: networking.IngressSpec{
-				Backend: &networking.IngressBackend{
+				DefaultBackend: &networking.IngressBackend{
 					ServiceName: "default-backend",
 					ServicePort: intstr.FromInt(80),
 				},
