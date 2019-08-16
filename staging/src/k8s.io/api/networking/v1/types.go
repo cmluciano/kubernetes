@@ -244,8 +244,10 @@ type IngressList struct {
 // IngressSpec describes the Ingress the user wishes to exist.
 type IngressSpec struct {
 	// The default backend capable of servicing requests that don't match any
-	// rule. At least one of 'defaultBackend' or 'rules' must be specified. This field
-	// is optional to allow the loadbalancer controller or defaulting logic to
+	// rule. At least one of 'defaultBackend' or 'rules' must be specified.
+	// If this is not specified, any request which does not match a rule will be handled
+	// in an implementation-defined way (e.g. a generic 404 or a 5xx).
+	// This field is optional to allow the loadbalancer controller or defaulting logic to
 	// specify a global default.
 	// +optional
 	DefaultBackend *IngressBackend `json:"defaultBackend,omitempty" protobuf:"bytes,1,opt,name=defaultBackend"`
@@ -259,7 +261,7 @@ type IngressSpec struct {
 	TLS []IngressTLS `json:"tls,omitempty" protobuf:"bytes,2,rep,name=tls"`
 
 	// A list of host rules used to configure the Ingress. If unspecified, or
-	// no rule matches, all traffic is sent to the default backend.
+	// no rule matches, traffic is sent to the default backend.
 	// +optional
 	Rules []IngressRule `json:"rules,omitempty" protobuf:"bytes,3,rep,name=rules"`
 	// TODO: Add the ability to specify load-balancer IP through claims
