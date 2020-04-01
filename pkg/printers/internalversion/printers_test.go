@@ -845,7 +845,7 @@ func TestPrintIngress(t *testing.T) {
 		},
 		Spec: networking.IngressSpec{
 			IngressClassName: utilpointer.StringPtr("foo"),
-			Backend: &networking.IngressBackend{
+			DefaultBackend: &networking.IngressBackend{
 				ServiceName: "svc",
 				ServicePort: intstr.FromInt(93),
 			},

@@ -303,8 +303,8 @@ func (in *IngressSpec) DeepCopyInto(out *IngressSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.Backend != nil {
-		in, out := &in.Backend, &out.Backend
+	if in.DefaultBackend != nil {
+		in, out := &in.DefaultBackend, &out.DefaultBackend
 		*out = new(IngressBackend)
 		(*in).DeepCopyInto(*out)
 	}

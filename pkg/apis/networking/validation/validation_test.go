@@ -910,7 +910,7 @@ func TestValidateIngress(t *testing.T) {
 			Namespace: metav1.NamespaceDefault,
 		},
 		Spec: networking.IngressSpec{
-			Backend: &networking.IngressBackend{
+			DefaultBackend: &networking.IngressBackend{
 				ServiceName: "default-backend",
 				ServicePort: intstr.FromInt(80),
 			},
@@ -961,7 +961,7 @@ func TestValidateIngress(t *testing.T) {
 		"backend (v1beta1) with no service": {
 			groupVersion: &networkingv1beta1.SchemeGroupVersion,
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend.ServiceName = ""
+				ing.Spec.DefaultBackend.ServiceName = ""
 			},
 			expectErrsOnFields: []string{
 				"spec.backend.serviceName",
@@ -1083,7 +1083,7 @@ func TestValidateIngress(t *testing.T) {
 		"spec.backend resource and service name are not allowed together": {
 			groupVersion: &networkingv1beta1.SchemeGroupVersion,
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = &networking.IngressBackend{
+				ing.Spec.DefaultBackend = &networking.IngressBackend{
 					ServiceName: "default-backend",
 					Resource: &api.TypedLocalObjectReference{
 						APIGroup: utilpointer.StringPtr("example.com"),
@@ -1099,7 +1099,7 @@ func TestValidateIngress(t *testing.T) {
 		"spec.backend resource and service port are not allowed together": {
 			groupVersion: &networkingv1beta1.SchemeGroupVersion,
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = &networking.IngressBackend{
+				ing.Spec.DefaultBackend = &networking.IngressBackend{
 					ServicePort: intstr.FromInt(80),
 					Resource: &api.TypedLocalObjectReference{
 						APIGroup: utilpointer.StringPtr("example.com"),
@@ -1275,8 +1275,8 @@ func TestValidateIngressCreate(t *testing.T) {
 			ResourceVersion: "1234",
 		},
 		Spec: networking.IngressSpec{
-			Backend: &defaultBackend,
-			Rules:   []networking.IngressRule{},
+			DefaultBackend: &defaultBackend,
+			Rules:          []networking.IngressRule{},
 		},
 	}
 
@@ -1337,9 +1337,9 @@ func TestValidateIngressCreate(t *testing.T) {
 			},
 			expectedErrs: field.ErrorList{field.Invalid(field.NewPath("spec.rules[0].http.paths[0].path"), "/([a-z0-9]*)[", "must be a valid regex")},
 		},
-		"Spec.Backend.Resource field not allowed on create": {
+		"Spec.DefaultBackend.Resource field not allowed on create": {
 			tweakIngress: func(ingress *networking.Ingress) {
-				ingress.Spec.Backend = &networking.IngressBackend{
+				ingress.Spec.DefaultBackend = &networking.IngressBackend{
 					Resource: resourceBackend}
 			},
 			expectedErrs: field.ErrorList{field.Forbidden(field.NewPath("spec.backend.resource"), "not supported; only service backends are supported in this version")},
@@ -1401,7 +1401,7 @@ func TestValidateIngressUpdate(t *testing.T) {
 			ResourceVersion: "1234",
 		},
 		Spec: networking.IngressSpec{
-			Backend: &defaultBackend,
+			DefaultBackend: &defaultBackend,
 		},
 	}
 
@@ -1544,28 +1544,28 @@ func TestValidateIngressUpdate(t *testing.T) {
 			},
 			expectedErrs: field.ErrorList{},
 		},
-		"new Backend.Resource not allowed on update": {
+		"new DefaultBackend.Resource not allowed on update": {
 			tweakIngresses: func(newIngress, oldIngress *networking.Ingress) {
-				oldIngress.Spec.Backend = &defaultBackend
-				newIngress.Spec.Backend = &networking.IngressBackend{
+				oldIngress.Spec.DefaultBackend = &defaultBackend
+				newIngress.Spec.DefaultBackend = &networking.IngressBackend{
 					Resource: resourceBackend}
 			},
 			expectedErrs: field.ErrorList{field.Forbidden(field.NewPath("spec.backend.resource"), "not supported; only service backends are supported in this version")},
 		},
-		"old Backend.Resource allowed on update": {
+		"old DefaultBackend.Resource allowed on update": {
 			tweakIngresses: func(newIngress, oldIngress *networking.Ingress) {
-				oldIngress.Spec.Backend = &networking.IngressBackend{
+				oldIngress.Spec.DefaultBackend = &networking.IngressBackend{
 					Resource: resourceBackend}
-				newIngress.Spec.Backend = &networking.IngressBackend{
+				newIngress.Spec.DefaultBackend = &networking.IngressBackend{
 					Resource: resourceBackend}
 			},
 			expectedErrs: field.ErrorList{},
 		},
 		"changing spec.backend from resource -> no resource": {
 			tweakIngresses: func(newIngress, oldIngress *networking.Ingress) {
-				oldIngress.Spec.Backend = &networking.IngressBackend{
+				oldIngress.Spec.DefaultBackend = &networking.IngressBackend{
 					Resource: resourceBackend}
-				newIngress.Spec.Backend = &defaultBackend
+				newIngress.Spec.DefaultBackend = &defaultBackend
 			},
 			expectedErrs: field.ErrorList{},
 		},
@@ -1912,7 +1912,7 @@ func TestValidateIngressTLS(t *testing.T) {
 				Namespace: metav1.NamespaceDefault,
 			},
 			Spec: networking.IngressSpec{
-				Backend: &networking.IngressBackend{
+				DefaultBackend: &networking.IngressBackend{
 					ServiceName: "default-backend",
 					ServicePort: intstr.FromInt(80),
 				},
@@ -2001,7 +2001,7 @@ func TestValidateIngressStatusUpdate(t *testing.T) {
 				ResourceVersion: "9",
 			},
 			Spec: networking.IngressSpec{
-				Backend: &networking.IngressBackend{
+				DefaultBackend: &networking.IngressBackend{
 					ServiceName: "default-backend",
 					ServicePort: intstr.FromInt(80),
 				},
@@ -2096,7 +2096,7 @@ func TestValidateResourceBackendPresent(t *testing.T) {
 			Namespace: metav1.NamespaceDefault,
 		},
 		Spec: networking.IngressSpec{
-			Backend: &networking.IngressBackend{
+			DefaultBackend: &networking.IngressBackend{
 				ServiceName: "default-backend",
 				ServicePort: intstr.FromInt(80),
 			},
@@ -2130,39 +2130,39 @@ func TestValidateResourceBackendPresent(t *testing.T) {
 		tweakIngress          func(ing *networking.Ingress)
 		expectResourceBackend bool
 	}{
-		"nil spec.Backend and no paths": {
+		"nil spec.DefaultBackend and no paths": {
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = nil
+				ing.Spec.DefaultBackend = nil
 				ing.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Path = ""
 			},
 			expectResourceBackend: false,
 		},
-		"nil spec.Backend.Resource and no paths": {
+		"nil spec.DefaultBackend.Resource and no paths": {
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = nil
+				ing.Spec.DefaultBackend = nil
 				ing.Spec.Rules[0].IngressRuleValue.HTTP.Paths = []networking.HTTPIngressPath{}
 			},
 			expectResourceBackend: false,
 		},
-		"non-nil spec.Backend.Resource and no paths": {
+		"non-nil spec.DefaultBackend.Resource and no paths": {
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = &networking.IngressBackend{
+				ing.Spec.DefaultBackend = &networking.IngressBackend{
 					Resource: resourceBackend,
 				}
 				ing.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Path = ""
 			},
 			expectResourceBackend: true,
 		},
-		"nil spec.Backend, one rule with nil HTTP ": {
+		"nil spec.DefaultBackend, one rule with nil HTTP ": {
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = nil
+				ing.Spec.DefaultBackend = nil
 				ing.Spec.Rules[0].IngressRuleValue.HTTP = nil
 			},
 			expectResourceBackend: false,
 		},
-		"nil spec.Backend, one rule with non-nil HTTP, no paths": {
+		"nil spec.DefaultBackend, one rule with non-nil HTTP, no paths": {
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = nil
+				ing.Spec.DefaultBackend = nil
 				ing.Spec.Rules[0].IngressRuleValue = networking.IngressRuleValue{
 					HTTP: &networking.HTTPIngressRuleValue{
 						Paths: []networking.HTTPIngressPath{},
@@ -2171,9 +2171,9 @@ func TestValidateResourceBackendPresent(t *testing.T) {
 			},
 			expectResourceBackend: false,
 		},
-		"nil spec.Backend, one rule with non-nil HTTP, one path with nil Backend.Resource": {
+		"nil spec.DefaultBackend, one rule with non-nil HTTP, one path with nil DefaultBackend.Resource": {
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = nil
+				ing.Spec.DefaultBackend = nil
 				ing.Spec.Rules[0].IngressRuleValue = networking.IngressRuleValue{
 					HTTP: &networking.HTTPIngressRuleValue{
 						Paths: []networking.HTTPIngressPath{
@@ -2190,9 +2190,9 @@ func TestValidateResourceBackendPresent(t *testing.T) {
 			},
 			expectResourceBackend: false,
 		},
-		"nil spec.Backend, one rule with non-nil HTTP, one path with non-nil Backend.Resource": {
+		"nil spec.DefaultBackend, one rule with non-nil HTTP, one path with non-nil DefaultBackend.Resource": {
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.Backend = nil
+				ing.Spec.DefaultBackend = nil
 				ing.Spec.Rules[0].IngressRuleValue = networking.IngressRuleValue{
 					HTTP: &networking.HTTPIngressRuleValue{
 						Paths: []networking.HTTPIngressPath{

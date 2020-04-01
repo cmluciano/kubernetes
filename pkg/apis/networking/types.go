@@ -248,12 +248,12 @@ type IngressSpec struct {
 	// +optional
 	IngressClassName *string
 
-	// Backend is a default backend capable of servicing requests that don't
-	// match any rule. At least one of 'backend' or 'rules' must be specified.
-	// This field is optional to allow the loadbalancer controller or defaulting
-	// logic to specify a global default.
+	// DefaultBackend is the backend that should handle requests that don't
+	// match any rule. If Rules are not specified, DefaultBackend must be specified.
+	// If DefaultBackend is not set, the handling of requests that do not match any
+	// of the rules will be up to the Ingress controller.
 	// +optional
-	Backend *IngressBackend
+	DefaultBackend *IngressBackend
 
 	// TLS configuration. Currently the Ingress only supports a single TLS
 	// port, 443. If multiple members of this list specify different hosts, they
@@ -267,7 +267,6 @@ type IngressSpec struct {
 	// no rule matches, all traffic is sent to the default backend.
 	// +optional
 	Rules []IngressRule
-	// TODO: Add the ability to specify load-balancer IP through claims
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

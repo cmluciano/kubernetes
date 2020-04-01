@@ -103,7 +103,7 @@ func newIngress(pathMap map[string]string) *networking.Ingress {
 			Namespace: namespace,
 		},
 		Spec: networking.IngressSpec{
-			Backend: &networking.IngressBackend{
+			DefaultBackend: &networking.IngressBackend{
 				ServiceName: defaultBackendName,
 				ServicePort: defaultBackendPort,
 			},
@@ -132,16 +132,16 @@ func TestCreate(t *testing.T) {
 	defer storage.Store.DestroyFunc()
 	test := genericregistrytest.New(t, storage.Store)
 	ingress := validIngress()
-	noBackendAndRules := validIngress()
-	noBackendAndRules.Spec.Backend = &networking.IngressBackend{}
-	noBackendAndRules.Spec.Rules = []networking.IngressRule{}
+	noDefaultBackendAndRules := validIngress()
+	noDefaultBackendAndRules.Spec.DefaultBackend = &networking.IngressBackend{}
+	noDefaultBackendAndRules.Spec.Rules = []networking.IngressRule{}
 	badPath := validIngress()
 	badPath.Spec.Rules = toIngressRules(map[string]IngressRuleValues{
 		"foo.bar.com": {"/invalid[": "svc"}})
 	test.TestCreate(
 		// valid
 		ingress,
-		noBackendAndRules,
+		noDefaultBackendAndRules,
 		badPath,
 	)
 }

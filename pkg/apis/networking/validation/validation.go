@@ -22,6 +22,8 @@ import (
 	"regexp"
 	"strings"
 
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	apimachineryvalidation "k8s.io/apimachinery/pkg/api/validation"
 	pathvalidation "k8s.io/apimachinery/pkg/api/validation/path"
 	unversionedvalidation "k8s.io/apimachinery/pkg/apis/meta/v1/validation"
@@ -265,15 +267,26 @@ func validateIngressTLS(spec *networking.IngressSpec, fldPath *field.Path) field
 	return allErrs
 }
 
+// defaultBackendFieldName returns the name of the field used for defaultBackend
+// in the provided GroupVersion.
+func defaultBackendFieldName(gv schema.GroupVersion) string {
+	switch gv {
+	case networkingv1beta1.SchemeGroupVersion, extensionsv1beta1.SchemeGroupVersion:
+		return "backend"
+	default:
+		return "defaultBackend"
+	}
+}
+
 // ValidateIngressSpec tests if required fields in the IngressSpec are set.
 func ValidateIngressSpec(spec *networking.IngressSpec, fldPath *field.Path, opts IngressValidationOptions, requestGV schema.GroupVersion) field.ErrorList {
 	allErrs := field.ErrorList{}
-	if len(spec.Rules) == 0 && spec.Backend == nil {
-		errMsg := "either `backend` or `rules` must be specified"
+	if len(spec.Rules) == 0 && spec.DefaultBackend == nil {
+		errMsg := fmt.Sprintf("either `%s` or `rules` must be specified", defaultBackendFieldName(requestGV))
 		allErrs = append(allErrs, field.Invalid(fldPath, spec.Rules, errMsg))
 	}
-	if spec.Backend != nil {
-		allErrs = append(allErrs, validateIngressBackend(spec.Backend, fldPath.Child("backend"), opts)...)
+	if spec.DefaultBackend != nil {
+		allErrs = append(allErrs, validateIngressBackend(spec.DefaultBackend, fldPath.Child(defaultBackendFieldName(requestGV)), opts)...)
 	}
 	if len(spec.Rules) > 0 {
 		allErrs = append(allErrs, validateIngressRules(spec.Rules, fldPath.Child("rules"), opts)...)
@@ -505,7 +518,7 @@ func allPathsPassRegexValidation(ingress *networking.Ingress) bool {
 }
 
 func resourceBackendPresent(ingress *networking.Ingress) bool {
-	if ingress.Spec.Backend != nil && ingress.Spec.Backend.Resource != nil {
+	if ingress.Spec.DefaultBackend != nil && ingress.Spec.DefaultBackend.Resource != nil {
 		return true
 	}
 	for _, rule := range ingress.Spec.Rules {
