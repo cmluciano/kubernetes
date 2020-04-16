@@ -897,8 +897,13 @@ func TestValidateNetworkPolicyUpdate(t *testing.T) {
 
 func TestValidateIngress(t *testing.T) {
 	defaultBackend := networking.IngressBackend{
-		ServiceName: "default-backend",
-		ServicePort: intstr.FromInt(80),
+		Service: &networking.IngressServiceBackend{
+			Name: "defaultbackend",
+                        Port: networking.ServiceBackendPort{
+				Name: "default-backend",
+				Number: int(80),
+			   },
+		},
 	}
 	pathTypePrefix := networking.PathTypePrefix
 	pathTypeImplementationSpecific := networking.PathTypeImplementationSpecific
@@ -910,10 +915,7 @@ func TestValidateIngress(t *testing.T) {
 			Namespace: metav1.NamespaceDefault,
 		},
 		Spec: networking.IngressSpec{
-			DefaultBackend: &networking.IngressBackend{
-				ServiceName: "default-backend",
-				ServicePort: intstr.FromInt(80),
-			},
+			DefaultBackend: &defaultBackend,
 			Rules: []networking.IngressRule{
 				{
 					Host: "foo.bar.com",
@@ -961,7 +963,7 @@ func TestValidateIngress(t *testing.T) {
 		"backend (v1beta1) with no service": {
 			groupVersion: &networkingv1beta1.SchemeGroupVersion,
 			tweakIngress: func(ing *networking.Ingress) {
-				ing.Spec.DefaultBackend.ServiceName = ""
+				ing.Spec.DefaultBackend.Service.Name = ""
 			},
 			expectErrsOnFields: []string{
 				"spec.backend.serviceName",

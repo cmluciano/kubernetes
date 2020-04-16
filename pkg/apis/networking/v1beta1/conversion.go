@@ -47,3 +47,30 @@ func Convert_networking_IngressSpec_To_v1beta1_IngressSpec(in *networking.Ingres
 	}
 	return nil
 }
+
+func Convert_v1beta1_IngressBackend_To_networking_IngressBackend(in *v1beta1.IngressBackend, out *networking.IngressBackend, s conversion.Scope) error {
+	var sName string
+	//	var sPort int32
+	if in.ServiceName != "" {
+		sName = in.ServiceName
+	}
+	//if in.ServicePort != "" {
+	sPort := in.ServicePort.IntVal
+	//}
+	inb := networking.IngressServiceBackend{
+		Name: sName,
+		Port: networking.ServiceBackendPort{
+			Name: sName,
+			Number: sPort,
+		},
+	}
+
+	out.Service = &inb
+	
+	return nil
+}
+
+func Convert_networking_IngressBackend_To_v1beta1_IngressBackend(in *networking.IngressBackend, out *v1beta1.IngressBackend, s conversion.Scope) error {
+	
+	return nil
+}

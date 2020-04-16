@@ -407,7 +407,7 @@ func validateIngressBackend(backend *networking.IngressBackend, fldPath *field.P
 	allErrs := field.ErrorList{}
 
 	hasResourceBackend := backend.Resource != nil
-	hasServiceBackend := len(backend.ServiceName) > 0 || backend.ServicePort.IntVal != 0 || len(backend.ServicePort.StrVal) > 0
+	hasServiceBackend := backend.Service != nil
 
 	switch {
 	case hasResourceBackend && hasServiceBackend:
@@ -417,14 +417,19 @@ func validateIngressBackend(backend *networking.IngressBackend, fldPath *field.P
 	case hasResourceBackend:
 		allErrs = append(allErrs, validateIngressTypedLocalObjectReference(backend.Resource, fldPath.Child("resource"))...)
 	default:
-		if len(backend.ServiceName) == 0 {
-			return append(allErrs, field.Required(fldPath.Child("serviceName"), ""))
+		if backend.Service.Name == "" {
+			return append(allErrs, field.Required(fldPath.Child("name"), ""))
+		}  else {
+			allErrs = append(allErrs, apivalidation.ValidateDNS1123Label(backend.Service.Name, fldPath.Child("name"))...)
 		}
-		for _, msg := range apivalidation.ValidateServiceName(backend.ServiceName, false) {
-			allErrs = append(allErrs, field.Invalid(fldPath.Child("serviceName"), backend.ServiceName, msg))
+		if backend.Service.Port.Name != "" {
+			allErrs = append(allErrs, apivalidation.ValidateDNS1123Label(backend.Service.Port.Name, fldPath.Child("name"))...)
 		}
-		allErrs = append(allErrs, apivalidation.ValidatePortNumOrName(backend.ServicePort, fldPath.Child("servicePort"))...)
-
+		if backend.Service.Port.Number != nil {
+			for _, msg := range validation.IsValidPortNum(*backend.Service.Port.Number) {
+				allErrs = append(allErrs, field.Invalid(fldPath.Child("port"), backend.Service.Port.Number, msg))
+			}
+		}
 	}
 	return allErrs
 }
