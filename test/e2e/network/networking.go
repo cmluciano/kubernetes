@@ -207,7 +207,7 @@ var _ = SIGDescribe("Networking", func() {
 			}
 		})
 
-		ginkgo.It("should function for node-Service: udp", func() {
+		ginkgo.It("should function for node-Service: udp [RunUdpTest]", func() {
 			config := e2enetwork.NewNetworkingTestConfig(f, e2enetwork.UseHostNetwork)
 			ginkgo.By(fmt.Sprintf("dialing(udp) %v (node) --> %v:%v (config.clusterIP)", config.NodeIP, config.ClusterIP, e2enetwork.ClusterUDPPort))
 			err := config.DialFromNode("udp", config.ClusterIP, e2enetwork.ClusterUDPPort, config.MaxTries, 0, config.EndpointHostnames())

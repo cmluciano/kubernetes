@@ -445,7 +445,10 @@ func (config *NetworkingTestConfig) GetHTTPCodeFromTestContainer(path, targetIP 
 func (config *NetworkingTestConfig) DialFromNode(protocol, targetIP string, targetPort, maxTries, minTries int, expectedEps sets.String) error {
 	var cmd string
 	if protocol == "udp" {
-		cmd = fmt.Sprintf("echo hostName | nc -w 1 -u %s %d", targetIP, targetPort)
+		cmd = fmt.Sprintf("echo hostName | ncat -w 1 -u %s %d", targetIP, targetPort)
+	} else if protocol == "sctp" {
+		//cmd = fmt.Sprintf("/agnhost connect %s:%d --protocol %s --timeout 8s && exit 0", targetIP, targetPort, protocol)
+		cmd = fmt.Sprintf("echo hostName | ncat -w 1 --sctp %s %d", targetIP, targetPort)
 	} else {
 		ipPort := net.JoinHostPort(targetIP, strconv.Itoa(targetPort))
 		// The current versions of curl included in CentOS and RHEL distros
@@ -460,6 +463,18 @@ func (config *NetworkingTestConfig) DialFromNode(protocol, targetIP string, targ
 	eps := sets.NewString()
 
 	filterCmd := fmt.Sprintf("%s | grep -v '^\\s*$'", cmd)
+	helpCmd := "nc -help"
+	stdout, stderr, err := config.f.ExecShellInPodWithFullOutput(config.HostTestContainerPod.Name, helpCmd)
+	framework.Logf("NC COMMAND EXECUTED STDOUT %v", stdout)
+	framework.Logf("NC COMMAND EXECUTED STDERR %v", stderr)
+	framework.Logf("NC COMMAND EXECUTED ERROR %v", err)
+
+	ncWhich := "which nc"
+	stdout, stderr, err = config.f.ExecShellInPodWithFullOutput(config.HostTestContainerPod.Name, ncWhich)
+	framework.Logf("NC WHICH EXECUTED STDOUT %v", stdout)
+	framework.Logf("NC WHICH EXECUTED STDERR %v", stderr)
+	framework.Logf("NC WHICH EXECUTED ERROR %v", err)
+
 	framework.Logf("Going to poll %v on port %v at least %v times, with a maximum of %v tries before failing", targetIP, targetPort, minTries, maxTries)
 	for i := 0; i < maxTries; i++ {
 		stdout, stderr, err := config.f.ExecShellInPodWithFullOutput(config.HostTestContainerPod.Name, filterCmd)
@@ -467,7 +482,8 @@ func (config *NetworkingTestConfig) DialFromNode(protocol, targetIP string, targ
 			// A failure to exec command counts as a try, not a hard fail.
 			// Also note that we will keep failing for maxTries in tests where
 			// we confirm unreachability.
-			framework.Logf("Failed to execute %q: %v, stdout: %q, stderr: %q", filterCmd, err, stdout, stderr)
+			framework.Logf("Failed to execute %q: %v, stdout: %q, stderr: %q", filterCmd, err, stdout, filterCmd)
+			framework.Logf("STDERR is: %v", stderr)
 		} else {
 			trimmed := strings.TrimSpace(stdout)
 			if trimmed != "" {
